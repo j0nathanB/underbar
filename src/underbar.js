@@ -114,11 +114,11 @@
     function findIndex(array, target){
       var result = -1;
 
-      array.forEach(function(item, index){
-        if(item === target && result === -1){
-          result = index;
+      for (var i = 0; i < array.length; i++) {
+        if(array[i] === target && result === -1){
+          result = i;
         }
-      })
+      }
 
       return result;
     }
