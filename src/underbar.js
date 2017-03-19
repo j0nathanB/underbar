@@ -183,12 +183,15 @@
   _.reduce = function(collection, iterator, accumulator) {
     if(typeof accumulator === 'undefined'){
       accumulator = collection[0];
+    
+      for (var i = 1; i < collection.length; i++) {
+        accumulator = iterator(accumulator,collection[i]);
+      }
+    } else {
+      for (var i = 0; i < collection.length; i++) {
+        accumulator = iterator(accumulator,collection[i]);
+     }
     }
-
-    for (var i = 0; i < collection.length; i++) {
-      accumulator = iterator(accumulator,collection[i]);
-    }
-
     return accumulator;
   };
 
