@@ -181,17 +181,29 @@
   //   }); // should be 5, regardless of the iterator function passed in
   //          No accumulator is given so the first element is used.
   _.reduce = function(collection, iterator, accumulator) {
-      var noMemo = accumulator === undefined;
+      var isNoStartingAccValue = accumulator === undefined;
 
-    _.each(collection, function(item){
-      if(noMemo){
-        accumulator = item;
-        noMemo = false;
-      } else {
-        accumulator = iterator(accumulator, item);
+      if(Array.isArray(collection)){
+        for (var i = 0; i < collection.length; i++) {
+          if(isNoStartingAccValue){
+            accumulator = collection[i];
+            isNoStartingAccValue = false;
+          } else {
+            accumulator = iterator(accumulator, collection[i]);
+          }
+        }
       }
-    });
-
+      else {
+        for (var key in collection) {
+          if(isNoStartingAccValue){
+            accumulator = collection[key];
+            isNoStartingAccValue = false;
+          } else {
+            accumulator = iterator(accumulator, collection[key]);
+          }
+        }
+      }
+      
     return accumulator;
   };
 
@@ -210,21 +222,27 @@
 
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
-    iterator = iterator || _.identity;
+    var result = true;
+    var test = iterator || _.identity;
 
-    return  !!_.reduce(collection, function(accumulator, item){
-      return accumulator && iterator(item);
-    }, true);
+    for (var i = 0; i < collection.length; i++) {
+        result = result && !!test(collection[i]);
+    }
+
+    return result;
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
-    iterator = iterator || _.identity;
+    var result = false;
+    var test = iterator || _.identity;
 
-    return  !!_.reduce(collection, function(accumulator, item){
-      return accumulator || iterator(item);
-    }, false);
+    for (var i = 0; i < collection.length; i++) {
+        result = result || !!test(collection[i]);
+    }
+
+    return result;
     // TIP: There's a very clever way to re-use every() here.
   };
 
@@ -248,9 +266,7 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
-    //console.log('*** obj: ' + JSON.stringify(obj) + '\n' + 'arguments: ' + JSON.stringify(arguments))
     _.each(arguments, function(passedInObject){
-     //console.log('passedInObject: ' + JSON.stringify(passedInObject))
       _.each(passedInObject, function(value, key){
         obj[key] = value;
       });
@@ -261,9 +277,7 @@
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
-    //console.log('*** obj: ' + JSON.stringify(obj) + '\n' + 'arguments: ' + JSON.stringify(arguments))
     _.each(arguments, function(passedInObject){
-      //console.log('passedInObject: ' + JSON.stringify(passedInObject))
       _.each(passedInObject, function(value, key){
         if(obj[key] === undefined){
           obj[key] = value;
@@ -314,6 +328,16 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+    var storage = {};
+
+    return function() {
+      var arg = JSON.stringify(arguments);
+      if (!storage[arg]) {
+        storage[arg] = func.apply(this, arguments);
+      }
+
+      return storage[arg];
+    };
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -323,6 +347,12 @@
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+    var args = Array.prototype.slice.call(arguments);
+    args = args.slice(2, args.length);
+
+      return setTimeout(function() {
+        return func.apply(null, args);
+      }, wait);
   };
 
 
@@ -337,6 +367,23 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+    var arr = array.slice();
+    var remainingElementsIndex = arr.length;
+    var temp = 0;
+    var randomIndex = 0;
+
+    // While there remain elements to shuffle…
+    while (remainingElementsIndex) {
+      // Pick a remaining element…
+      randomIndex = Math.floor(Math.random() * remainingElementsIndex--);
+
+      // And swap it with the current element.
+      temp = arr[remainingElementsIndex];
+      arr[remainingElementsIndex] = arr[randomIndex];
+      arr[randomIndex] = temp;
+    }
+
+    return arr;
   };
 
 
